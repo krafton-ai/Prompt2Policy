@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt2Policy v1.0 — Release Notes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; color: #1a1a2e; background: #fafafa; line-height: 1.6; }
+  .container { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+  h1 span { color: #6366f1; }
+  .subtitle { color: #64748b; font-size: 1.1rem; margin-bottom: 40px; }
+  h2 { font-size: 1.3rem; font-weight: 600; margin: 36px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 1rem; font-weight: 600; margin: 20px 0 8px; color: #334155; }
+  p { margin-bottom: 12px; color: #475569; }
+  ul { margin: 0 0 16px 20px; color: #475569; }
+  li { margin-bottom: 6px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-right: 4px; }
+  .tag-limitation { background: #fef3c7; color: #92400e; }
+  .tag-known { background: #fee2e2; color: #991b1b; }
+  .tag-future { background: #dbeafe; color: #1e40af; }
+  .tag-done { background: #d1fae5; color: #065f46; }
+  .section { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: #f8fafc; border-radius: 8px; padding: 16px; border: 1px solid #e2e8f0; }
+  .card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
+  .card p { font-size: 0.85rem; margin-bottom: 0; }
+  .milestone { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+  .milestone:last-child { border-bottom: none; }
+  .milestone-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .dot-v1 { background: #22c55e; }
+  .dot-v11 { background: #6366f1; }
+  .dot-v2 { background: #f59e0b; }
+  .milestone-content { flex: 1; }
+  .milestone-label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
+  footer { text-align: center; color: #94a3b8; font-size: 0.8rem; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Prompt2Policy <span>v1.0</span></h1>
+<p class="subtitle">Automated RL reward engineering powered by LLMs — first public release</p>
+
+<div class="section">
+<h2>What Ships in v1.0</h2>
+<div class="grid">
+  <div class="card">
+    <h4><span class="tag tag-done">Shipped</span> Auto-RL Loop</h4>
+    <p>Text intent → reward code → PPO training → VLM judgment → revision → retrain. Fully autonomous multi-iteration loop.</p>
+  </div>
+  <div class="card">
+    <h4><span class="tag tag-done">Shipped</span> MuJoCo + IsaacLab</h4>
+    <p>10 MuJoCo envs + 90 IsaacLab envs (locomotion, manipulation, dexterous). Multi-GPU SSH scheduling.</p>
+  </div>
+  <div class="card">
+    <h4><span class="tag tag-done">Shipped</span> Dashboard</h4>
+    <p>Next.js web UI for sessions, iterations, training curves, rollout videos, and benchmark management.</p>
+  </div>
+  <div class="card">
+    <h4><span class="tag tag-done">Shipped</span> Dual Judge</h4>
+    <p>Code-based judge + VLM judge (Gemini) with agentic synthesis. Trajectory analysis via tool-use.</p>
+  </div>
+</div>
+</div>
+
+<div class="section">
+<h2>Known Limitations</h2>
+
+<h3><span class="tag tag-limitation">Limitation</span> VLM Judge Quality &amp; Consistency</h3>
+<p>The VLM judge (Gemini) provides directionally useful scores but is not perfectly calibrated. Scores can vary across runs for the same behavior. The judge sometimes misinterprets body orientation, rotation direction, or subtle pose differences — especially for MuJoCo body shapes that differ from real-world references.</p>
+
+<h3><span class="tag tag-limitation">Limitation</span> IsaacLab Hyperparameter Optimization</h3>
+<p>IsaacLab environments use Zoo-preset hyperparameters tuned for MuJoCo, which may not be optimal for GPU-vectorized physics. The <code>num_envs</code>, batch size, and learning rate scaling need per-environment tuning. The disabled early termination creates perverse alive-bonus incentives for locomotion envs, causing agents to learn standing-still strategies instead of the target behavior.</p>
+
+<h3><span class="tag tag-limitation">Limitation</span> Reward Revision Strategy</h3>
+<p>The LLM revise agent sometimes over-corrects: a near-success at iteration 1 (e.g., partial backflip) gets completely restructured at iteration 2 instead of fine-tuned. Sparse reward designs (monotonic trackers, one-time bonuses) often replace dense shaping that was closer to working, causing regression to "do nothing" policies.</p>
+
+<h3><span class="tag tag-known">Known Issue</span> Invisible Robot in IsaacLab Rendering</h3>
+<p>Concurrent Phase 2 rendering workers can produce videos where the robot mesh is not visible due to a USD loading race condition in Omniverse. A render warmup verification and retry mechanism mitigates this, but intermittent failures still occur with high parallelism.</p>
+
+<h3><span class="tag tag-known">Known Issue</span> Remote Process Lifecycle</h3>
+<p>SSH-dispatched training sessions can become orphaned when connections drop. <code>nohup setsid</code> detaches processes from SSH sessions, and the scheduler includes liveness checks with SSH keepalive — but deep process trees (Phase 2 workers, eval subprocesses) may still survive cancellation.</p>
+
+<h3><span class="tag tag-known">Known Issue</span> Synthesizer Score Variance</h3>
+<p>The final synthesis step (merging code judge + VLM judge scores) lacks a fixed scoring rubric, leading to variance in the aggregated intent score even when individual judge outputs are consistent.</p>
+</div>
+
+<div class="section">
+<h2>Roadmap</h2>
+
+<div class="milestone">
+  <div class="milestone-dot dot-v11"></div>
+  <div class="milestone-content">
+    <div class="milestone-label">v1.1 — Near Term</div>
+    <h3>Agentic Video Judge</h3>
+    <p>A fully agentic VLM judge that can actively investigate behavior rather than passively scoring a single video. Today's judge already supports re-asking the VLM at specific time intervals and FPS — but the next version goes further:</p>
+    <ul style="margin-top:8px;">
+      <li><strong>Camera control</strong> — request new rollouts from different camera angles, zoom into specific body parts (e.g., foot placement, hand grip), or switch to top-down view for rotation analysis</li>
+      <li><strong>Cross-iteration comparison</strong> — side-by-side video comparison with previous iterations to detect regressions, verify improvements, and track behavioral consistency across reward revisions</li>
+      <li><strong>Targeted re-rendering</strong> — re-render a specific time window at higher resolution or slower playback to examine fast motions (flips, contact events) that are ambiguous at normal speed</li>
+      <li><strong>Trajectory overlay</strong> — request motion trail, joint angle, or contact force visualizations overlaid on the video to verify physics-level claims (e.g., "all four feet left the ground")</li>
+      <li><strong>Multi-round evidence gathering</strong> — the judge builds a structured evidence chain: initial assessment → targeted investigation → final verdict, rather than a single-pass score</li>
+    </ul>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-dot dot-v11"></div>
+  <div class="milestone-content">
+    <div class="milestone-label">v1.1 — Near Term</div>
+    <h3>Omni-Modal Intent Input</h3>
+    <p>Accept text, images, and reference videos as intent input. A chat-style interface where users can describe behavior in natural language, upload a reference video of the desired motion, or combine both. VLM extracts behavioral criteria from all modalities.</p>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-dot dot-v11"></div>
+  <div class="milestone-content">
+    <div class="milestone-label">v1.1 — Near Term</div>
+    <h3>IsaacLab Training Optimization</h3>
+    <p>Per-environment hyperparameter presets, proper termination handling for locomotion envs, and env-aware reward design guidance in the LLM prompt. Fix the alive-bonus trap for disabled-termination settings.</p>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-dot dot-v11"></div>
+  <div class="milestone-content">
+    <div class="milestone-label">v1.1 — Near Term</div>
+    <h3>Human-in-the-Loop Steering</h3>
+    <p>Multi-turn human intervention during the auto-RL loop. Currently the pipeline runs fully autonomously after the initial intent — the human sets the goal and waits. With HITL steering, users can pause between iterations, watch rollout videos, and provide natural-language corrections: <em>"good jump but land softer"</em>, <em>"rotate the other way"</em>, <em>"keep the arm movement but walk faster"</em>. The revise agent incorporates human feedback alongside VLM judgment, combining autonomous iteration with interactive course-correction — similar to Eureka's RLHF but as a conversational multi-turn experience.</p>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-dot dot-v2"></div>
+  <div class="milestone-content">
+    <div class="milestone-label">v2.0 — Future</div>
+    <h3>Video-to-Video Reward Learning</h3>
+    <p>Reference video → reward function without natural language. The VLM analyzes the reference motion to identify key poses, timing, and joint configurations, then writes a reward that reproduces the motion on the target embodiment. Enables cross-embodiment motion transfer at the reward level.</p>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-dot dot-v2"></div>
+  <div class="milestone-content">
+    <div class="milestone-label">v2.0 — Future</div>
+    <h3>VLM Fine-Tuning for RL Judgment</h3>
+    <p>Fine-tune a VLM specifically for RL behavior assessment — trained on human-annotated rollout videos with consistent scoring criteria. Replaces the current zero-shot Gemini judge with a calibrated, domain-specific model.</p>
+  </div>
+</div>
+
+<div class="milestone">
+  <div class="milestone-dot dot-v2"></div>
+  <div class="milestone-content">
+    <div class="milestone-label">v2.0 — Future</div>
+    <h3>Multi-Agent &amp; Multi-Task</h3>
+    <p>Extend beyond single-agent single-task to cooperative/competitive multi-agent scenarios and curriculum-based multi-task training where completing one behavior unlocks the next.</p>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  Prompt2Policy — Prompt2Policy &bull; Krafton AI
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+env_id,instruction,category,difficulty
+Isaac-Ant-Direct-v0,To make the ant run forward as fast as possible,locomotion,easy
+Isaac-Ant-Direct-v0,Walk forward with a steady gait at a moderate speed over the episode.,locomotion,easy
+Isaac-Ant-Direct-v0,"Spin in place by rotating the entire body around the vertical axis for one full turn, then stand still and balanced.",acrobatic,medium
+Isaac-Ant-Direct-v0,Walk sideways while keeping the torso upright. Do not rotate the body. Move steadily to one side for the entire episode.,locomotion,medium
+Isaac-Ant-Direct-v0,Walk backward at a moderate pace while keeping the torso level and upright. Do not flip or tumble.,locomotion,medium
+Isaac-Ant-Direct-v0,"Roll continuously to the side: the torso should repeatedly cycle through head-down, legs-up, head-down orientations without stopping. Maintain sustained rolling motion for the entire episode, covering as much lateral distance as possible.",acrobatic,hard
+Isaac-Ant-Direct-v0,"Perform a breakdance-style spin: lower the body close to the ground, then rotate rapidly around the vertical axis while staying low. Complete several full rotations in a row without stopping.",acrobatic,hard
+Isaac-Ant-Direct-v0,"Jump as high as possible from a standing position. Crouch down first to generate force, then explosively extend all legs to launch vertically.",acrobatic,hard
+Isaac-Ant-Direct-v0,Flip over onto its back so the legs point up. Hold the inverted position steadily.,acrobatic,hard
+Isaac-Ant-Direct-v0,Stand on the rear two legs only with the front two legs lifted off the ground. Hold this pose steadily.,balance,hard
+Isaac-Cartpole-Direct-v0,To balance a pole on a cart so that the pole stays upright,balance,easy
+Isaac-Franka-Cabinet-Direct-v0,To open the cabinet door,manipulation,medium
+Isaac-Humanoid-Direct-v0,Walk forward with a stable upright gait at a moderate speed. The torso should remain tall and stay nearly vertical throughout the episode.,locomotion,easy
+Isaac-Humanoid-Direct-v0,To make the humanoid run as fast as possible,locomotion,medium
+Isaac-Humanoid-Direct-v0,"Step sideways using a lateral shuffle, moving one foot out first then bringing the other foot to meet it in a steady rhythm while keeping the torso facing forward.",locomotion,medium
+Isaac-Humanoid-Direct-v0,"Perform a bow: bend the torso forward at the waist deeply, hold the bowed position briefly, then return to an upright standing posture. Keep both feet planted on the ground throughout.",pose,medium
+Isaac-Humanoid-Direct-v0,"Repeatedly throw a left jab: extend the left arm forward rapidly to full extension, retract it, and repeat. Execute multiple distinct jab motions. The torso should remain upright and both feet should stay on the ground.",pose,medium
+Isaac-Humanoid-Direct-v0,Hold a lunge position: step one leg forward with the knee bent and the rear leg extended behind with the knee close to the ground. Hold this stance steadily with the torso upright.,pose,medium
+Isaac-Humanoid-Direct-v0,"Perform a forward roll: tuck the head and roll the body forward over the ground through a full somersault, then return to a standing or crouching posture. Complete at least one full roll.",acrobatic,hard
+Isaac-Humanoid-Direct-v0,"Spin in place by turning the entire body around 360 degrees while staying balanced upright, completing the full rotation and ending in a stable standing position.",acrobatic,hard
+Isaac-Humanoid-Direct-v0,"Walk forward and gradually accelerate from a slow walk into a brisk jog, smoothly increasing stride length and arm swing speed over several steps while keeping the torso stable and upright.",locomotion,hard
+Isaac-Humanoid-Direct-v0,"Walk forward like a zombie with both arms extended straight out in front at shoulder height, keeping the arms rigid while moving with a slow stiff-legged shambling gait.",style,hard
+Isaac-Quadcopter-Direct-v0,Hover stably as high as possible,control,medium
+Isaac-Repose-Cube-Allegro-Direct-v0,Keep the cube balanced on the fingertips,dexterous,hard
+Isaac-Repose-Cube-Shadow-Direct-v0,Keep the cube balanced on the fingertips,dexterous,hard
+Isaac-Spin-Pen-Shadow-Direct-v0,Spin the pen continuously,dexterous,hard
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,Stand completely still and maintain a stable standing posture for the entire episode. All four feet should remain on the ground. Do not fall over.,balance,easy
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,Walk forward as fast as possible,locomotion,medium
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,Walk sideways while keeping the torso facing forward. Move steadily to one side using lateral steps.,locomotion,medium
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,Walk backward at a moderate pace while keeping the body stable and level.,locomotion,medium
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,Crawl forward with the torso staying very low to the ground for the entire episode. Maintain a steady forward speed.,style,medium
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,"Hop forward like a kangaroo, with all four legs leaving the ground simultaneously in each stride. Maintain a moderate speed. Multiple distinct hops should be visible.",style,medium
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,"Perform a backflip: jump, rotate backward a full turn in the air, and land upright. After landing, remain stable and upright.",acrobatic,hard
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,"Perform a backflip, then immediately sprint forward at high speed. The transition from landing to sprint should be almost instant.",acrobatic,hard
+Isaac-Velocity-Flat-Anymal-C-Direct-v0,Stand on the rear two legs only with the front two legs lifted off the ground. Hold this pose steadily.,balance,hard
+Isaac-Velocity-Flat-Anymal-D-v0,Walk forward as fast as possible while keeping the torso level.,locomotion,medium
+Isaac-Velocity-Flat-Anymal-D-v0,"Hop forward like a kangaroo, with all four legs leaving the ground simultaneously in each stride. Multiple distinct hops should be visible.",style,medium
+Isaac-Velocity-Flat-Anymal-D-v0,"Perform a backflip: jump, rotate backward a full turn in the air, and land upright. After landing, remain stable.",acrobatic,hard
+Isaac-Velocity-Flat-Anymal-D-v0,Stand on the rear two legs only with the front two legs lifted off the ground. Hold this pose steadily.,balance,hard
+Isaac-Velocity-Flat-Cassie-v0,Stand completely still and maintain an upright standing posture for the entire episode. Both feet should remain on the ground. Do not fall over or let the body collapse.,balance,easy
+Isaac-Velocity-Flat-Cassie-v0,Walk forward at a moderate steady pace while keeping the torso upright and vertical throughout the episode. Both legs should alternate in a smooth gait cycle with consistent stride length.,locomotion,medium
+Isaac-Velocity-Flat-Cassie-v0,Sprint forward at maximum speed. The torso should lean forward slightly. Each stride should have a clear flight phase where both feet are off the ground. Maintain the sprint without falling.,locomotion,medium
+Isaac-Velocity-Flat-Cassie-v0,"Walk backward at a moderate pace. The torso should remain upright. The backward velocity should be steady and controlled, not a stumble or fall.",locomotion,medium
+Isaac-Velocity-Flat-Cassie-v0,"Jump as high as possible from a standing position. Crouch down first by bending the leg joints to generate force, then explosively extend to launch vertically.",acrobatic,hard
+Isaac-Velocity-Flat-Digit-v0,Walk forward with a stable upright gait at a moderate speed. The torso should remain tall and stay nearly vertical throughout the episode.,locomotion,easy
+Isaac-Velocity-Flat-Digit-v0,"Walk backward in a straight line with careful measured steps, keeping the torso upright and facing forward.",locomotion,medium
+Isaac-Velocity-Flat-Digit-v0,"Walk forward and gradually accelerate from a slow walk into a brisk jog, smoothly increasing stride length over several steps while keeping the torso stable and upright.",locomotion,hard
+Isaac-Velocity-Flat-Digit-v0,"March in place with exaggerated high knee lifts raising each knee to waist height, pumping the opposite arm upward in sync with each step while maintaining a perfectly upright posture.",style,hard
+Isaac-Velocity-Flat-G1-v0,Walk forward with a stable upright gait at a moderate speed. The torso should remain tall and stay nearly vertical throughout the episode.,locomotion,easy
+Isaac-Velocity-Flat-G1-v0,"Perform a bow: bend the torso forward at the waist deeply, hold the bowed position briefly, then return to an upright standing posture. Keep both feet planted on the ground throughout.",pose,medium
+Isaac-Velocity-Flat-G1-v0,"Repeatedly throw a left jab: extend the left arm forward rapidly to full extension, retract it, and repeat. Execute multiple distinct jab motions. The torso should remain upright and both feet should stay on the ground.",pose,medium
+Isaac-Velocity-Flat-G1-v0,Hold a lunge position: step one leg forward with the knee bent and the rear leg extended behind with the knee close to the ground. Hold this stance steadily with the torso upright.,pose,medium
+Isaac-Velocity-Flat-G1-v0,"Perform a forward roll: tuck the head and roll the body forward over the ground through a full somersault, then return to a standing or crouching posture. Complete at least one full roll.",acrobatic,hard
+Isaac-Velocity-Flat-G1-v0,"March in place with exaggerated high knee lifts raising each knee to waist height, pumping the opposite arm upward in sync with each step while maintaining a perfectly upright posture.",style,hard
+Isaac-Velocity-Flat-H1-v0,"Run forward at a sustained jogging pace with both feet leaving the ground briefly between strides, pumping the arms in rhythm with the legs while keeping the torso upright with a slight forward lean.",locomotion,medium
+Isaac-Velocity-Flat-H1-v0,"Perform a deep squat by bending the knees while keeping the torso vertical, then rise back to full standing. Repeat the squat motion rhythmically.",pose,medium
+Isaac-Velocity-Flat-H1-v0,"Walk forward with a natural human-like gait, alternating legs in a steady rhythm with a consistent stride length, while keeping the torso upright and avoiding excessive lateral sway.",style,medium
+Isaac-Velocity-Flat-H1-v0,"Stand on one leg with the other leg lifted and bent at the knee, holding both arms extended outward at shoulder height for balance. Maintain the single-leg stance as long as possible.",balance,hard
+Isaac-Velocity-Flat-Spot-v0,Walk forward at a moderate pace with a natural quadruped gait. Keep the torso level and stable.,locomotion,easy
+Isaac-Velocity-Flat-Spot-v0,Crawl forward with the torso staying very low to the ground for the entire episode.,style,medium
+Isaac-Velocity-Flat-Spot-v0,Stand on the rear two legs only with the front two legs lifted off the ground. Hold this pose steadily.,balance,hard
+Isaac-Velocity-Flat-Unitree-Go2-v0,Walk forward as fast as possible while keeping the torso level and stable.,locomotion,medium
+Isaac-Velocity-Flat-Unitree-Go2-v0,Walk backward at a moderate pace while keeping the body stable and level. Do not flip or tumble.,locomotion,medium
+Isaac-Velocity-Flat-Unitree-Go2-v0,"Hop forward like a kangaroo, with all four legs leaving the ground simultaneously. Maintain a moderate speed.",style,medium

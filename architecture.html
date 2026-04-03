@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RLoop Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0a0e1a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 40px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 48px;
+    font-weight: 400;
+  }
+
+  /* ---- MAIN GRID ---- */
+  .arch-grid {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 260px 1fr 260px;
+    grid-template-rows: auto auto auto;
+    gap: 24px;
+  }
+
+  /* ---- CARD ---- */
+  .card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .card ul {
+    list-style: none;
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #94a3b8;
+  }
+  .card ul li::before {
+    content: "›";
+    margin-right: 6px;
+    color: #475569;
+    font-weight: 700;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 6px;
+    vertical-align: middle;
+    margin-left: 4px;
+  }
+
+  /* ---- COLORS ---- */
+  .c-blue    { border-color: #3b82f633; }
+  .c-blue .card-title { color: #60a5fa; }
+  .c-blue .dot { background: #3b82f6; }
+
+  .c-purple  { border-color: #8b5cf633; }
+  .c-purple .card-title { color: #a78bfa; }
+  .c-purple .dot { background: #8b5cf6; }
+
+  .c-green   { border-color: #22c55e33; }
+  .c-green .card-title { color: #4ade80; }
+  .c-green .dot { background: #22c55e; }
+
+  .c-orange  { border-color: #f9731633; }
+  .c-orange .card-title { color: #fb923c; }
+  .c-orange .dot { background: #f97316; }
+
+  .c-pink    { border-color: #ec489933; }
+  .c-pink .card-title { color: #f472b6; }
+  .c-pink .dot { background: #ec4899; }
+
+  .c-teal    { border-color: #14b8a633; }
+  .c-teal .card-title { color: #2dd4bf; }
+  .c-teal .dot { background: #14b8a6; }
+
+  .c-yellow  { border-color: #eab30833; }
+  .c-yellow .card-title { color: #fbbf24; }
+  .c-yellow .dot { background: #eab308; }
+
+  .badge-blue   { background: #1e3a5f; color: #60a5fa; }
+  .badge-purple { background: #3b1f6e; color: #a78bfa; }
+  .badge-green  { background: #14532d; color: #4ade80; }
+  .badge-orange { background: #5c2d0e; color: #fb923c; }
+  .badge-pink   { background: #5c1a3a; color: #f472b6; }
+  .badge-teal   { background: #134e4a; color: #2dd4bf; }
+
+  /* ---- PLACEMENT ---- */
+  .frontend   { grid-column: 1 / 2; grid-row: 1 / 2; }
+  .api        { grid-column: 1 / 2; grid-row: 2 / 3; }
+  .scheduler  { grid-column: 1 / 2; grid-row: 3 / 4; }
+  .loop-core  { grid-column: 2 / 3; grid-row: 1 / 4; }
+  .llm-agents { grid-column: 3 / 4; grid-row: 1 / 2; }
+  .vlm        { grid-column: 3 / 4; grid-row: 2 / 3; }
+  .data       { grid-column: 3 / 4; grid-row: 3 / 4; }
+
+  /* ---- LOOP CORE (center) ---- */
+  .loop-core {
+    background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+    border: 1px solid #1e293b;
+    border-radius: 14px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .loop-core .card-title {
+    color: #f472b6;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* SVG loop diagram */
+  .loop-svg-wrap {
+    width: 100%;
+    max-width: 620px;
+  }
+  .loop-svg-wrap svg {
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---- FLOW ARROW between left column cards ---- */
+  .flow-label {
+    text-align: center;
+    font-size: 11px;
+    color: #475569;
+    padding: 2px 0;
+    display: none; /* hidden, spacing handled by gap */
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 1100px) {
+    .arch-grid {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+    }
+    .frontend, .api, .scheduler, .loop-core, .llm-agents, .vlm, .data {
+      grid-column: 1; grid-row: auto;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>RLoop — AutoRL Architecture</h1>
+<p class="subtitle">LLM-driven reward engineering loop for continuous RL policy improvement</p>
+
+<div class="arch-grid">
+
+  <!-- LEFT COLUMN -->
+  <div class="card c-blue frontend">
+    <div class="card-title"><span class="dot"></span>Frontend <span class="badge badge-blue">Next.js</span></div>
+    <ul>
+      <li>Session dashboard &amp; iteration details</li>
+      <li>Real-time SSE event stream</li>
+      <li>Benchmark pipeline monitor</li>
+      <li>Scheduler &amp; node management</li>
+      <li>Training charts &amp; video player</li>
+      <li>Lineage tree visualization</li>
+    </ul>
+  </div>
+
+  <div class="card c-green api">
+    <div class="card-title"><span class="dot"></span>API Server <span class="badge badge-green">FastAPI</span></div>
+    <ul>
+      <li>REST endpoints + SSE streaming</li>
+      <li>Session / iteration / benchmark CRUD</li>
+      <li>Process manager (start / stop / status)</li>
+      <li>VLM chat service</li>
+      <li>Session enrichment &amp; analysis</li>
+      <li>Node resource monitoring</li>
+    </ul>
+  </div>
+
+  <div class="card c-teal scheduler">
+    <div class="card-title"><span class="dot"></span>Scheduler <span class="badge badge-teal">Distributed</span></div>
+    <ul>
+      <li>Manifest-based job orchestration</li>
+      <li>Controllers: Session / Benchmark / E2E</li>
+      <li>LocalBackend <span style="color:#475569">(taskset CPU pinning)</span></li>
+      <li>SSHBackend <span style="color:#475569">(rsync + remote launch)</span></li>
+      <li>Node store &amp; SSH key management</li>
+      <li>Benchmark CSV → multi-stage pipeline</li>
+    </ul>
+  </div>
+
+  <!-- CENTER — LOOP CORE -->
+  <div class="loop-core card">
+    <div class="card-title"><span class="dot" style="background:#ec4899"></span>Core Loop &mdash; loop.py Orchestrator</div>
+    <div class="loop-svg-wrap">
+      <svg viewBox="0 0 600 560" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="none" stroke="#475569" stroke-width="1.2"/>
+          </marker>
+          <marker id="ah-pink" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="none" stroke="#f472b6" stroke-width="1.2"/>
+          </marker>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="g"/>
+            <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- STEP BOXES -->
+        <!-- 1. Intent Elicitation -->
+        <rect x="190" y="10" width="220" height="52" rx="10" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.2"/>
+        <text x="300" y="33" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="600">1 · INTENT ELICITATION</text>
+        <text x="300" y="48" text-anchor="middle" fill="#64748b" font-size="9.5">Decompose vague prompt → behavioral criteria</text>
+
+        <!-- 2. Reward Author -->
+        <rect x="190" y="90" width="220" height="52" rx="10" fill="#1e293b" stroke="#f97316" stroke-width="1.2"/>
+        <text x="300" y="113" text-anchor="middle" fill="#fb923c" font-size="11" font-weight="600">2 · REWARD AUTHOR</text>
+        <text x="300" y="128" text-anchor="middle" fill="#64748b" font-size="9.5">Generate + validate + review reward code</text>
+
+        <!-- 3. Parallel Training -->
+        <rect x="190" y="170" width="220" height="52" rx="10" fill="#1e293b" stroke="#22c55e" stroke-width="1.2"/>
+        <text x="300" y="193" text-anchor="middle" fill="#4ade80" font-size="11" font-weight="600">3 · PARALLEL TRAINING</text>
+        <text x="300" y="208" text-anchor="middle" fill="#64748b" font-size="9.5">PPO × multi-config × multi-seed</text>
+
+        <!-- 4. Judge Agent (pushed down for StreamingJudge space) -->
+        <rect x="190" y="310" width="220" height="78" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="1.2"/>
+        <text x="300" y="333" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">4 · JUDGE AGENT</text>
+        <text x="300" y="351" text-anchor="middle" fill="#64748b" font-size="9.5">Step 1: Code Judge and/or VLM critique</text>
+        <text x="300" y="367" text-anchor="middle" fill="#64748b" font-size="9.5">Step 2: LLM synthesis → pass / fail</text>
+
+        <!-- 5. Revise Agent -->
+        <rect x="190" y="440" width="220" height="52" rx="10" fill="#1e293b" stroke="#ec4899" stroke-width="1.2"/>
+        <text x="300" y="463" text-anchor="middle" fill="#f472b6" font-size="11" font-weight="600">5 · REVISE AGENT</text>
+        <text x="300" y="478" text-anchor="middle" fill="#64748b" font-size="9.5">Adjust reward code + hyperparameters</text>
+
+        <!-- ARROWS down -->
+        <line x1="300" y1="62" x2="300" y2="90" stroke="#475569" stroke-width="1.2" marker-end="url(#ah)"/>
+        <line x1="300" y1="142" x2="300" y2="170" stroke="#475569" stroke-width="1.2" marker-end="url(#ah)"/>
+        <line x1="300" y1="222" x2="300" y2="310" stroke="#475569" stroke-width="1.2" marker-end="url(#ah)"/>
+
+        <!-- LOOP-BACK ARROW (revise → training left-center) -->
+        <path d="M190,466 L60,466 Q40,466 40,446 L40,196 Q40,196 60,196 L190,196"
+              fill="none" stroke="#f472b6" stroke-width="1.5" stroke-dasharray="6,3"
+              marker-end="url(#ah-pink)" filter="url(#glow)"/>
+        <text x="26" y="334" text-anchor="middle" fill="#f472b6" font-size="9" font-weight="500"
+              transform="rotate(-90,26,334)">ITERATE (revised reward fn + HP)</text>
+
+        <!-- PASS arrow (from judge right side) → Result node -->
+        <defs>
+          <marker id="ah-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="none" stroke="#4ade80" stroke-width="1.2"/>
+          </marker>
+        </defs>
+        <path d="M410,349 L500,349" fill="none" stroke="#4ade80" stroke-width="1.5" marker-end="url(#ah-green)"/>
+        <text x="455" y="342" fill="#4ade80" font-size="9" font-weight="600">PASS ✓</text>
+        <rect x="508" y="335" width="80" height="28" rx="8" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+        <text x="548" y="353" text-anchor="middle" fill="#4ade80" font-size="10" font-weight="600">Result</text>
+
+        <!-- FAIL arrow (judge → revise, red) -->
+        <defs>
+          <marker id="ah-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="none" stroke="#f87171" stroke-width="1.2"/>
+          </marker>
+        </defs>
+        <line x1="300" y1="388" x2="300" y2="440" stroke="#f87171" stroke-width="1.2" marker-end="url(#ah-red)"/>
+        <text x="320" y="418" fill="#f87171" font-size="9" font-weight="500">FAIL ✗</text>
+
+        <!-- Guardrails annotation -->
+        <rect x="440" y="176" width="145" height="40" rx="8" fill="#1a1a2e" stroke="#eab30844" stroke-width="1"/>
+        <text x="512" y="192" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="500">Guardrails</text>
+        <text x="512" y="206" text-anchor="middle" fill="#64748b" font-size="8.5">Reward hacking · Plateau</text>
+        <line x1="410" y1="196" x2="440" y2="196" stroke="#eab30866" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- Streaming Judge annotation (centered between Training & Judge) -->
+        <rect x="440" y="249" width="145" height="40" rx="8" fill="#1a1a2e" stroke="#3b82f644" stroke-width="1"/>
+        <text x="512" y="265" text-anchor="middle" fill="#60a5fa" font-size="9" font-weight="500">StreamingJudge</text>
+        <text x="512" y="279" text-anchor="middle" fill="#64748b" font-size="8.5">Pre-judge, reuse results</text>
+        <line x1="410" y1="218" x2="448" y2="255" stroke="#3b82f644" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="410" y1="316" x2="448" y2="283" stroke="#3b82f644" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- User input -->
+        <rect x="100" y="18" width="76" height="36" rx="8" fill="#1a1a2e" stroke="#a78bfa55" stroke-width="1"/>
+        <text x="138" y="40" text-anchor="middle" fill="#a78bfa" font-size="10" font-weight="500">User</text>
+        <line x1="176" y1="36" x2="190" y2="36" stroke="#a78bfa" stroke-width="1.2" marker-end="url(#ah)"/>
+
+        <!-- LoopConfig annotation -->
+        <text x="300" y="528" text-anchor="middle" fill="#475569" font-size="9.5">
+          LoopConfig wraps TrainConfig • max_iterations • pass_threshold • LLM/VLM settings
+        </text>
+        <!-- Event log -->
+        <text x="300" y="546" text-anchor="middle" fill="#475569" font-size="9.5">
+          EventLogger emits structured events at each stage → SSE → Frontend
+        </text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="card c-purple llm-agents">
+    <div class="card-title"><span class="dot"></span>LLM Agents <span class="badge badge-purple">Claude</span></div>
+    <ul>
+      <li><b>Intent Elicitor</b> — criteria decomposition</li>
+      <li><b>Reward Author</b> — code gen + fix + review</li>
+      <li><b>Judge Author</b> — generates judge function</li>
+      <li><b>Judge Agent</b> — trajectory scoring</li>
+      <li><b>Revise Agent</b> — tool-use reward + HP tuning</li>
+      <li><b>Lineage</b> — lesson extraction</li>
+    </ul>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #1e293b;">
+      <span style="font-size:11px;color:#64748b;">Shared infra:</span>
+      <ul>
+        <li>llm_client.py — unified API wrapper</li>
+        <li>prompts/ — modular prompt templates</li>
+        <li>agent_tools.py — tool dispatch</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card c-orange vlm">
+    <div class="card-title"><span class="dot"></span>VLM Providers <span class="badge badge-orange">Multi</span></div>
+    <ul>
+      <li><b>vLLM</b> — Qwen3.5-27B (native video)</li>
+      <li><b>Claude</b> — base64 image input</li>
+      <li><b>Gemini</b> — inline MP4 video</li>
+      <li><b>Ollama</b> — local composite fallback</li>
+    </ul>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #1e293b;">
+      <span style="font-size:11px;color:#64748b;">Utilities:</span>
+      <ul>
+        <li>create_composite() — START / PEAK / END</li>
+        <li>find_peak_frame() — motion analysis</li>
+        <li>compute_video_motion() — ranking</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card c-yellow data">
+    <div class="card-title"><span class="dot"></span>Data Layer <span class="badge badge-orange">contracts.py</span></div>
+    <ul>
+      <li><b>TypedDicts</b> — TrainSummary, JudgmentResult, ReviseResult, …</li>
+      <li><b>SessionRecord</b> — session-level file I/O</li>
+      <li><b>IterationRecord</b> — iteration-level file I/O</li>
+      <li><b>LoopConfig</b> — single source of truth</li>
+      <li><b>TrainConfig</b> — PPO hyperparams</li>
+      <li><b>EnvSpec</b> — MuJoCo env metadata</li>
+    </ul>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #1e293b;">
+      <span style="font-size:11px;color:#64748b;">Training:</span>
+      <ul>
+        <li>SB3 PPO via executor subprocess</li>
+        <li>parallel_trainer — CPU pinning + aggregation</li>
+        <li>Rewards: built-in presets in rewards/</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER LEGEND -->
+<div style="max-width:1280px;margin:36px auto 0;display:flex;flex-wrap:wrap;gap:24px;justify-content:center;">
+  <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b;">
+    <span class="dot" style="background:#3b82f6"></span> Frontend / Judge
+    <span class="dot" style="background:#22c55e;margin-left:12px"></span> API / Training
+    <span class="dot" style="background:#8b5cf6;margin-left:12px"></span> LLM Agents
+    <span class="dot" style="background:#f97316;margin-left:12px"></span> VLM
+    <span class="dot" style="background:#ec4899;margin-left:12px"></span> Loop Core
+    <span class="dot" style="background:#14b8a6;margin-left:12px"></span> Scheduler
+    <span class="dot" style="background:#eab308;margin-left:12px"></span> Data / Config
+  </div>
+</div>
+<p style="text-align:center;font-size:11px;color:#334155;margin-top:12px;">
+  Prompt2Policy &middot; Python 3.11+ &middot; uv &middot; SB3 &middot; Anthropic Claude &middot; MuJoCo
+</p>
+
+</body>
+</html>

@@ -1,0 +1,135 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── Landing page animations ── */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-shadow {
+  0%, 100% { box-shadow: 0 4px 24px rgba(99, 102, 241, 0.08), 0 0 0 1px rgba(99, 102, 241, 0.06); }
+  50% { box-shadow: 0 8px 40px rgba(99, 102, 241, 0.14), 0 0 0 1px rgba(99, 102, 241, 0.12); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out both;
+}
+
+.animate-fade-up-delay-1 {
+  animation: fade-up 0.6s ease-out 0.1s both;
+}
+
+.animate-fade-up-delay-2 {
+  animation: fade-up 0.6s ease-out 0.2s both;
+}
+
+.animate-fade-up-delay-3 {
+  animation: fade-up 0.6s ease-out 0.35s both;
+}
+
+.animate-fade-up-delay-4 {
+  animation: fade-up 0.6s ease-out 0.5s both;
+}
+
+.animate-pulse-shadow {
+  animation: pulse-shadow 3s ease-in-out infinite;
+}
+
+/* Light gradient background */
+.landing-bg {
+  background: #fafbfc;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(99, 102, 241, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 20%, rgba(168, 85, 247, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 0% 60%, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Soft card */
+.card-soft {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card-soft:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04);
+  border-color: rgba(99, 102, 241, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Input focus */
+.input-ring {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.input-ring:focus-within {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 24px rgba(99, 102, 241, 0.06);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* Suggestion chip */
+.chip {
+  transition: all 0.2s ease;
+}
+
+.chip:hover {
+  background: rgba(99, 102, 241, 0.06);
+  border-color: rgba(99, 102, 241, 0.25);
+  color: #4338ca;
+  transform: translateY(-1px);
+}
+
+/* Score ring */
+.score-ring {
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+/* Env avatar pop-in */
+@keyframes avatar-pop {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.avatar-pop {
+  animation: avatar-pop 0.3s ease-out both;
+}

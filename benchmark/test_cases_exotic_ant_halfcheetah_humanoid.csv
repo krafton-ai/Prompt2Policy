@@ -1,0 +1,16 @@
+env_id,instruction,category,difficulty
+Ant-v5,"Spin in place by rotating the entire body around the vertical axis for one full turn, then stand still and balanced.",acrobatic,medium
+Ant-v5,"Walk forward with a steady gait at a moderate speed over the episode.",locomotion,easy
+Ant-v5,"Stand on the two legs only with other two legs lifted off the ground. Hold this pose steadily.",balance,hard
+Ant-v5,"Continuously roll in a consistent direction by rotating the body around a fixed axis, maintaining sustained angular momentum through repeated limb-ground interactions. The rotation should proceed in the same direction without reversal or stopping, forming a continuous rolling cycle throughout the episode while covering as much distance as possible.",acrobatic,hard
+Ant-v5,"Perform a breakdance-style spin: lower the body close to the ground, then rotate rapidly around the vertical axis while staying low. Complete several full rotations in a row without stopping.",acrobatic,hard
+HalfCheetah-v5,"Crawl forward with the torso staying very low to the ground for the entire episode. Maintain a steady forward speed.",style,medium
+HalfCheetah-v5,"Hop forward like a kangaroo, with both sets of legs leaving the ground simultaneously in each stride. Maintain a moderate speed. Multiple distinct hops should be visible.",style,medium
+HalfCheetah-v5,"Stand on the back legs only. The front legs should be elevated off the ground. The torso should be angled upward noticeably from horizontal. Hold this pose steadily.",balance,hard
+HalfCheetah-v5,"Perform a backflip: jump, rotate backward a full turn in the air, and land upright. After landing, remain stable and upright.",acrobatic,hard
+HalfCheetah-v5,"Perform a backflip, then immediately sprint forward at high speed. The transition from landing to sprint should be almost instant.",acrobatic,hard
+Humanoid-v5,"Perform a plank by extending the legs behind the body and supporting weight through the arms and feet, while keeping the shoulders, torso, hips, and knees aligned in a straight line. Use the torso and hip joints to stabilize the body, prevent excessive bending at the waist, and hold the posture close to horizontal with firm ground contact and minimal motion.",pose,medium
+Humanoid-v5,"Walk forward with a stable upright gait at a moderate speed. The torso should remain tall and stay nearly vertical throughout the episode.",locomotion,easy
+Humanoid-v5,"Perform a forward roll: tuck the head and roll the body forward over the ground through a full somersault, then return to a standing or crouching posture. Complete at least one full roll.",acrobatic,hard
+Humanoid-v5,"Repeatedly throw a left jab: extend the left arm forward rapidly to full extension, retract it, and repeat. Execute multiple distinct jab motions. The torso should remain upright and both feet should stay on the ground.",pose,medium
+Humanoid-v5,"Hold a lunge position: step one leg forward with the knee bent and the rear leg extended behind with the knee close to the ground. Hold this stance steadily with the torso upright.",pose,medium

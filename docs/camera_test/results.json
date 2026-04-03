@@ -1,0 +1,274 @@
+{
+  "Isaac-Ant-Direct-v0": {
+    "status": "error",
+    "error": "USD file not found at path at: 'None/Isaac/Robots/IsaacSim/Ant/ant_instanceable.usd'."
+  },
+  "Isaac-Ant-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Cart-Double-Pendulum-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Cartpole-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Cartpole-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Dexsuite-Kuka-Allegro-Lift-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Dexsuite-Kuka-Allegro-Reorient-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-ExhaustPipe-GR1T2-Pink-IK-Abs-v0": {
+    "status": "error",
+    "error": "Environment `Isaac-ExhaustPipe-GR1T2-Pink-IK-Abs` doesn't exist."
+  },
+  "Isaac-Franka-Cabinet-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Humanoid-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Humanoid-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Lift-Cube-Franka-IK-Abs-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Lift-Cube-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Lift-Cube-Franka-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Lift-Cube-OpenArm-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Lift-Teddy-Bear-Franka-IK-Abs-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Navigation-Flat-Anymal-C-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-NutPour-GR1T2-Pink-IK-Abs-v0": {
+    "status": "error",
+    "error": "Environment `Isaac-NutPour-GR1T2-Pink-IK-Abs` doesn't exist. Did you mean: `Isaac-Reach-Franka-IK-Abs`?"
+  },
+  "Isaac-Open-Drawer-Franka-IK-Abs-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Open-Drawer-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Open-Drawer-Franka-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Open-Drawer-OpenArm-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-PickPlace-FixedBaseUpperBodyIK-G1-Abs-v0": {
+    "status": "error",
+    "error": "Environment `Isaac-PickPlace-FixedBaseUpperBodyIK-G1-Abs` doesn't exist."
+  },
+  "Isaac-PickPlace-G1-InspireFTP-Abs-v0": {
+    "status": "error",
+    "error": "Environment `Isaac-PickPlace-G1-InspireFTP-Abs` doesn't exist."
+  },
+  "Isaac-PickPlace-GR1T2-Abs-v0": {
+    "status": "error",
+    "error": "Environment `Isaac-PickPlace-GR1T2-Abs` doesn't exist."
+  },
+  "Isaac-PickPlace-GR1T2-WaistEnabled-Abs-v0": {
+    "status": "error",
+    "error": "Environment `Isaac-PickPlace-GR1T2-WaistEnabled-Abs` doesn't exist."
+  },
+  "Isaac-PickPlace-Locomanipulation-G1-Abs-v0": {
+    "status": "error",
+    "error": "Environment `Isaac-PickPlace-Locomanipulation-G1-Abs` doesn't exist."
+  },
+  "Isaac-Place-Mug-Agibot-Left-Arm-RmpFlow-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Place-Toy2Box-Agibot-Right-Arm-RmpFlow-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Quadcopter-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Reach-Franka-IK-Abs-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Reach-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Reach-Franka-OSC-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Reach-Franka-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Reach-OpenArm-Bi-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Reach-OpenArm-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Reach-UR10-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Repose-Cube-Allegro-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Repose-Cube-Allegro-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Repose-Cube-Shadow-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Repose-Cube-Shadow-OpenAI-FF-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Repose-Cube-Shadow-OpenAI-LSTM-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Shadow-Hand-Over-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-BlueGreen-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-BlueGreenRed-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-Franka-IK-Abs-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-Franka-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-Galbot-Left-Arm-Gripper-RmpFlow-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-Galbot-Right-Arm-Suction-RmpFlow-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-RedGreen-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-RedGreenBlue-Franka-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-UR10-Long-Suction-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Stack-Cube-UR10-Short-Suction-IK-Rel-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-TrackPositionNoObstacles-ARL-Robot-1-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Tracking-LocoManip-Digit-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Anymal-B-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Anymal-C-Direct-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Anymal-C-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Anymal-D-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Cassie-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Digit-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-G1-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-H1-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Spot-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Unitree-A1-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Unitree-Go1-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  },
+  "Isaac-Velocity-Flat-Unitree-Go2-v0": {
+    "status": "error",
+    "error": "Simulation context already exists. Cannot create a new one."
+  }
+}
