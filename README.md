@@ -99,7 +99,7 @@ uv run uvicorn p2p.api.app:app --host 0.0.0.0 --port 8000 --reload --reload-dir 
 cd frontend && npm install && npm run dev                                                    # Terminal 2
 ```
 
-Open **http://localhost:3000**, enter an intent like *"do a backflip"*, and hit run. See the [dashboard tutorial](https://www.krafton.ai/blog/posts/2026-04-03-prompt-to-policy/prompt-to-policy_en.html/) for a video walkthrough. For CLI usage, see [CLI Reference](#cli-reference).
+Open **http://localhost:3000**, enter an intent like *"do a backflip"*, and hit run. See the [dashboard tutorial](https://www.krafton.ai/blog/posts/2026-04-03-prompt-to-policy/prompt-to-policy_en.html) for a video walkthrough. For CLI usage, see [CLI Reference](#cli-reference).
 
 > **Remote server?** Create `frontend/.env.local` with `NEXT_PUBLIC_API_URL=http://<your-server-ip>:8000` so the browser can reach the API. See [Dashboard — Remote Access](docs/GUIDE.md#remote-access).
 
