@@ -49,6 +49,7 @@ from p2p.prompts.judge_agent import (
     AGENTIC_SYNTHESIS_SYSTEM,
     AGENTIC_SYNTHESIS_USER,
     VLM_SCORING_RUBRIC,
+    build_vlm_criteria_review_prompt,
     build_vlm_expectations_prompt,
     build_vlm_scoring_prompt,
 )
@@ -94,6 +95,154 @@ def _with_event_context(fn):
 #   _ep{N}  (sequential eval)
 #   _p10, _median, _p90  (parallel eval percentile selection)
 _EP_SUFFIX_RE = re.compile(r"_(?:ep\d+|p\d+|median)$")
+
+
+# ---------------------------------------------------------------------------
+# Reviewed criteria generation (F_shared protocol)
+# ---------------------------------------------------------------------------
+
+
+def generate_reviewed_vlm_criteria(
+    intent: str,
+    env_name: str,
+    *,
+    vlm_model: str = VLM_MODEL,
+    max_reviews: int = 3,
+    video_path: Path | None = None,
+) -> str:
+    """Generate Turn 1 criteria + self-review loop (max *max_reviews* rounds).
+
+    Calls the VLM to generate visual success criteria (Turn 1), then asks the
+    same VLM to review and optionally refine them.  The reviewed criteria text
+    is cached at session level and reused for all subsequent Turn 2 calls.
+
+    When *video_path* is provided and VLM_REFINED_INITIAL_FRAME is enabled,
+    the first frame is extracted and included in the Turn 1 call so the VLM
+    can ground its criteria in the actual scene.
+
+    Returns the reviewed criteria text.
+    """
+    from p2p.inference.vlm import _extract_first_frame_b64
+    from p2p.settings import VLM_REFINED_INITIAL_FRAME
+    from p2p.training.env_spec import get_spec_by_name as _get_spec
+
+    _spec = _get_spec(env_name)
+    _engine = _spec.engine if _spec else "mujoco"
+
+    use_frame = VLM_REFINED_INITIAL_FRAME and video_path and video_path.exists()
+    turn1_prompt = build_vlm_expectations_prompt(
+        intent,
+        env_name,
+        engine=_engine,
+        initial_frame=bool(use_frame),
+    )
+
+    # Extract first frame if available
+    images: list[str] = []
+    if use_frame:
+        frame_b64 = _extract_first_frame_b64(video_path)
+        if frame_b64:
+            images = [frame_b64]
+
+    # Generate initial criteria (with first frame if available)
+    criteria = call_vlm_auto(
+        turn1_prompt,
+        images,
+        vlm_model=vlm_model,
+        max_tokens=1024,
+    )
+    logger.info("Turn 1 criteria generated (%d chars, frame=%s)", len(criteria), bool(images))
+
+    # Self-review loop
+    for i in range(max_reviews):
+        review_prompt = build_vlm_criteria_review_prompt(
+            criteria, intent, env_name, engine=_engine
+        )
+        review_resp = call_vlm_auto(
+            review_prompt,
+            [],
+            vlm_model=vlm_model,
+            max_tokens=2048,
+        )
+        if "APPROVED" in review_resp:
+            logger.info("Criteria approved after %d review(s)", i + 1)
+            break
+        logger.info("Criteria revised (review %d/%d)", i + 1, max_reviews)
+        criteria = review_resp
+
+    else:
+        logger.info(
+            "Criteria review exhausted %d rounds, using last revision",
+            max_reviews,
+        )
+    return criteria
+
+
+class SharedCriteriaHolder:
+    """Thread-safe container shared across StreamingJudge instances.
+
+    First caller to ``get_or_generate()`` runs VLM criteria generation;
+    concurrent callers block until ready, then reuse the same value.
+    """
+
+    def __init__(self, initial: str | None = None) -> None:
+        self._criteria: str | None = initial
+        self._lock = threading.Lock()
+        self._ready = threading.Event()
+        if initial is not None:
+            self._ready.set()
+
+    @property
+    def value(self) -> str | None:
+        return self._criteria
+
+    def get_or_generate(
+        self,
+        *,
+        intent: str,
+        env_name: str,
+        vlm_model: str,
+        video_path: Path,
+        session_dir: Path,
+    ) -> str:
+        """Return cached criteria, or generate and persist on first call."""
+        # Fast path: already generated
+        if self._ready.is_set():
+            return self._criteria  # type: ignore[return-value]
+
+        with self._lock:
+            # Double-check after acquiring lock
+            if self._ready.is_set():
+                return self._criteria  # type: ignore[return-value]
+
+            logger.info("SharedCriteriaHolder: generating reviewed criteria (first eval)")
+            self._criteria = generate_reviewed_vlm_criteria(
+                intent,
+                env_name,
+                vlm_model=vlm_model,
+                video_path=video_path,
+            )
+            self._persist(session_dir, intent, env_name)
+            self._ready.set()
+            return self._criteria
+
+    def _persist(self, session_dir: Path, intent: str, env_name: str) -> None:
+        """Save to session-level vlm_criteria.json (idempotent)."""
+        try:
+            criteria_path = session_dir / "vlm_criteria.json"
+            if self._criteria:
+                criteria_path.write_text(
+                    json.dumps(
+                        {
+                            "criteria": self._criteria,
+                            "intent": intent,
+                            "env_name": env_name,
+                        }
+                    )
+                )
+                logger.info("Cached VLM criteria saved to %s", criteria_path)
+        except Exception:
+            logger.exception("SharedCriteriaHolder: failed to persist criteria")
 
 
 # ---------------------------------------------------------------------------
@@ -224,6 +373,7 @@ def judge_all_checkpoints(
     judgment_select: str = DEFAULT_JUDGMENT_SELECT,
     tag_history: list[FailureTagEntry] | None = None,
     engine: str = "mujoco",
+    cached_criteria: str | None = None,
 ) -> JudgmentResult:
     """Judge each eval checkpoint independently, return the selected one.
 
@@ -291,6 +441,7 @@ def judge_all_checkpoints(
             model=model,
             judge_code=judge_code,
             tag_history=tag_history,
+            cached_criteria=cached_criteria,
         )
         checkpoint_copy = dict(result)
         result["best_checkpoint"] = step
@@ -333,6 +484,7 @@ def judge_all_checkpoints(
                 model=model,
                 judge_code=judge_code,
                 tag_history=tag_history,
+                cached_criteria=cached_criteria,
             )
             return step, result
 
@@ -450,6 +602,7 @@ def _judge_single_rollout(
     judge_code: str = "",
     eval_return: float | None = None,
     tag_history: list[FailureTagEntry] | None = None,
+    cached_criteria: str | None = None,
 ) -> RolloutJudgment:
     """Run the full 3-stage judge pipeline on a single rollout video.
 
@@ -490,6 +643,7 @@ def _judge_single_rollout(
             prompt,
             env_name=env_name,
             vlm_model=vlm_model,
+            cached_criteria=cached_criteria,
         )
 
     # Stage 3: Synthesis
@@ -615,6 +769,7 @@ def _judge_single_checkpoint(
     model: str = LLM_MODEL,
     judge_code: str = "",
     tag_history: list[FailureTagEntry] | None = None,
+    cached_criteria: str | None = None,
 ) -> JudgmentResult:
     """Run the full judge pipeline on all rollouts at a single checkpoint.
 
@@ -663,6 +818,7 @@ def _judge_single_checkpoint(
                 prompt,
                 env_name=env_name,
                 vlm_model=vlm_model,
+                cached_criteria=cached_criteria,
             )
 
         # Generate VLM preview for the single-video checkpoint path
@@ -735,6 +891,7 @@ def _judge_single_checkpoint(
             judge_code=judge_code,
             eval_return=ep_returns[idx] if idx < len(ep_returns) else None,
             tag_history=tag_history,
+            cached_criteria=cached_criteria,
         )
 
     indexed_videos = list(enumerate(rollout_videos))
@@ -1310,6 +1467,7 @@ def _run_vlm_judgment_on_video(
     *,
     env_name: str,
     vlm_model: str = VLM_MODEL,
+    cached_criteria: str | None = None,
 ) -> StageJudgment:
     """Get VLM judgment from video using 2-turn protocol.
 
@@ -1394,6 +1552,7 @@ def _run_vlm_judgment_on_video(
             max_tokens=MAX_VLM_TOKENS,
             video_path=video_path if use_video else None,
             refined_initial_frame=VLM_REFINED_INITIAL_FRAME,
+            cached_criteria=cached_criteria,
         )
     except VLMError:
         logger.warning("VLM call failed (%s), falling back to Claude", vlm_model)
@@ -1570,6 +1729,7 @@ class StreamingJudge:
         model: str = LLM_MODEL,
         judge_code: str = "",
         judge_code_future: Future[str] | None = None,
+        criteria_holder: SharedCriteriaHolder | None = None,
     ) -> None:
         self.iteration_dir = Path(iteration_dir)
         self.prompt = prompt
@@ -1583,6 +1743,7 @@ class StreamingJudge:
         self.model = model
         self.judge_code = judge_code
         self._judge_code_future = judge_code_future
+        self._criteria_holder = criteria_holder
 
         self._results: dict[str, JudgmentResult] = {}
         self._lock = threading.Lock()
@@ -1738,6 +1899,23 @@ class StreamingJudge:
         try:
             logger_token = set_event_logger(self._event_logger)
             iter_token = set_current_iteration(self._event_iteration)
+
+            # Lazy criteria generation — shared across all StreamingJudge
+            # instances via the holder.  First instance to reach here generates;
+            # others block and reuse.
+            cached_criteria: str | None = None
+            if self._criteria_holder is not None:
+                if self._criteria_holder.value is None:
+                    session_dir = self.iteration_dir.parent.parent
+                    self._criteria_holder.get_or_generate(
+                        intent=self.prompt,
+                        env_name=self.env_name,
+                        vlm_model=self.vlm_model,
+                        video_path=video_path,
+                        session_dir=session_dir,
+                    )
+                cached_criteria = self._criteria_holder.value
+
             logger.info("StreamingJudge: judging step=%s", step)
             result = _judge_single_checkpoint(
                 prompt=self.prompt,
@@ -1751,6 +1929,7 @@ class StreamingJudge:
                 client=self.client,
                 model=self.model,
                 judge_code=self.judge_code,
+                cached_criteria=cached_criteria,
             )
             with self._lock:
                 self._results[step] = result

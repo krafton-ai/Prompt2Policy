@@ -833,18 +833,18 @@ def call_vlm_gemini(
     video_path: Path | None = None,
     model: str = "vllm-Qwen/Qwen3.5-27B",
 ) -> str:
-    """Call Google Gemini Vision API with video (preferred) or image.
+    """Call Google Gemini API with video, image, or text-only.
 
     When *video_path* is provided, sends the MP4 inline as bytes.
-    Otherwise falls back to base64 image.
+    Otherwise falls back to base64 image.  If neither is provided,
+    performs a text-only call (used by criteria review).
 
     Returns response text.
 
     Raises:
-        VLMError: If the API call fails or no media is provided.
+        VLMError: If the API call fails.
     """
-    if not (video_path and video_path.exists()) and not image_b64:
-        raise VLMError("no video or image provided")
+    has_media = (video_path and video_path.exists()) or bool(image_b64)
 
     try:
         from google import genai
@@ -852,13 +852,18 @@ def call_vlm_gemini(
         from p2p.settings import GEMINI_API_KEY
 
         client = genai.Client(api_key=GEMINI_API_KEY)
-        media_part = _build_gemini_media_part(video_path, image_b64)
         config = _build_gemini_config(model)
+
+        if has_media:
+            media_part = _build_gemini_media_part(video_path, image_b64)
+            contents = [prompt, media_part]
+        else:
+            contents = [prompt]
 
         t0 = _time.monotonic()
         response = client.models.generate_content(
             model=model,
-            contents=[prompt, media_part],
+            contents=contents,
             config=config,
         )
         _emit_vlm_call(model, response, duration_ms=int((_time.monotonic() - t0) * 1000))
@@ -948,11 +953,15 @@ def call_vlm_two_turn(
     max_tokens: int = MAX_VLM_TOKENS,
     video_path: Path | None = None,
     refined_initial_frame: bool = False,
+    cached_criteria: str | None = None,
 ) -> tuple[str, str]:
     """Two-turn VLM call to mitigate agreement bias.
 
     Turn 1 (text-only): VLM pre-commits visual success criteria.
     Turn 2 (with media): VLM scores against its own criteria.
+
+    When *cached_criteria* is provided, Turn 1 is skipped and the cached
+    criteria text is injected into the conversation history for Turn 2.
 
     Returns (criteria_text, scoring_response).
     """
@@ -971,6 +980,7 @@ def call_vlm_two_turn(
             host=VLLM_HOST,
             port=VLLM_PORT,
             max_tokens=max_tokens,
+            cached_criteria=cached_criteria,
         )
 
     if model_lower.startswith("claude"):
@@ -980,6 +990,7 @@ def call_vlm_two_turn(
             turn2_prompt,
             image_b64,
             model=vlm_model,
+            cached_criteria=cached_criteria,
         )
 
     if model_lower.startswith("gemini"):
@@ -991,6 +1002,7 @@ def call_vlm_two_turn(
             video_path=video_path,
             model=vlm_model,
             refined_initial_frame=refined_initial_frame,
+            cached_criteria=cached_criteria,
         )
 
     # Default: Ollama
@@ -1000,6 +1012,7 @@ def call_vlm_two_turn(
         images_b64,
         model=vlm_model,
         max_tokens=max_tokens,
+        cached_criteria=cached_criteria,
     )
 
 
@@ -1013,6 +1026,7 @@ def _two_turn_vllm(
     host: str = "0.0.0.0",
     port: int = 8100,
     max_tokens: int = MAX_VLM_TOKENS,
+    cached_criteria: str | None = None,
 ) -> tuple[str, str]:
     """Two-turn vLLM call via OpenAI-compatible API."""
     from openai import OpenAI
@@ -1023,15 +1037,18 @@ def _two_turn_vllm(
     try:
         client = OpenAI(base_url=f"http://{connect_host}:{port}/v1", api_key="unused")
 
-        # Turn 1: text-only
-        resp1 = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": turn1_prompt}],
-            max_tokens=_TURN1_MAX_TOKENS,
-            temperature=0.0,
-            extra_body=_VLLM_EXTRA_BODY,
-        )
-        criteria = resp1.choices[0].message.content or ""
+        # Turn 1: text-only (skip if cached)
+        if cached_criteria is not None:
+            criteria = cached_criteria
+        else:
+            resp1 = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": turn1_prompt}],
+                max_tokens=_TURN1_MAX_TOKENS,
+                temperature=0.0,
+                extra_body=_VLLM_EXTRA_BODY,
+            )
+            criteria = resp1.choices[0].message.content or ""
 
         # Turn 2: with media + conversation history
         turn2_content: list[dict] = [{"type": "text", "text": turn2_prompt}]
@@ -1063,6 +1080,7 @@ def _two_turn_gemini(
     video_path: Path | None = None,
     model: str = "gemini-3.1-pro-preview",
     refined_initial_frame: bool = False,
+    cached_criteria: str | None = None,
 ) -> tuple[str, str]:
     """Two-turn Gemini call with thinking support.
 
@@ -1120,14 +1138,18 @@ def _two_turn_gemini(
             if trail_video_path_obj != actual_video:
                 trail_video_path = trail_video_path_obj
 
-        t0 = _time.monotonic()
-        resp1 = client.models.generate_content(
-            model=model,
-            contents=[types.Content(role="user", parts=turn1_parts)],
-            config=config,
-        )
-        _emit_vlm_call(model, resp1, duration_ms=int((_time.monotonic() - t0) * 1000))
-        criteria = resp1.text or ""
+        # Turn 1: generate criteria (skip if cached)
+        if cached_criteria is not None:
+            criteria = cached_criteria
+        else:
+            t0 = _time.monotonic()
+            resp1 = client.models.generate_content(
+                model=model,
+                contents=[types.Content(role="user", parts=turn1_parts)],
+                config=config,
+            )
+            _emit_vlm_call(model, resp1, duration_ms=int((_time.monotonic() - t0) * 1000))
+            criteria = resp1.text or ""
 
         # Turn 2: build parts depending on dual mode
         if VLM_MOTION_TRAIL_DUAL and trail_video_path:
@@ -1181,19 +1203,23 @@ def _two_turn_anthropic(
     image_b64: str,
     *,
     model: str = LLM_MODEL,
+    cached_criteria: str | None = None,
 ) -> tuple[str, str]:
     """Two-turn Anthropic Claude call with thinking support."""
     from p2p.inference.llm_client import create_message, extract_response_text, get_client
 
     client = get_client()
     try:
-        # Turn 1: text-only
-        resp1 = create_message(
-            client,
-            model=model,
-            messages=[{"role": "user", "content": turn1_prompt}],
-        )
-        criteria = extract_response_text(resp1)
+        # Turn 1: text-only (skip if cached)
+        if cached_criteria is not None:
+            criteria = cached_criteria
+        else:
+            resp1 = create_message(
+                client,
+                model=model,
+                messages=[{"role": "user", "content": turn1_prompt}],
+            )
+            criteria = extract_response_text(resp1)
 
         # Turn 2: with image + conversation history
         turn2_content: list[dict] = [{"type": "text", "text": turn2_prompt}]
@@ -1223,6 +1249,7 @@ def _two_turn_ollama(
     *,
     model: str = VLM_MODEL,
     max_tokens: int = MAX_VLM_TOKENS,
+    cached_criteria: str | None = None,
 ) -> tuple[str, str]:
     """Two-turn Ollama call with thinking disabled."""
     import requests
@@ -1233,15 +1260,18 @@ def _two_turn_ollama(
         "think": False,
     }
     try:
-        # Turn 1: text-only
-        payload1 = {
-            **base_opts,
-            "options": {"num_predict": _TURN1_MAX_TOKENS, "temperature": 0.0},
-            "messages": [{"role": "user", "content": turn1_prompt}],
-        }
-        resp1 = requests.post(f"{VLM_BASE_URL}/api/chat", json=payload1, timeout=300)
-        resp1.raise_for_status()
-        criteria = resp1.json().get("message", {}).get("content", "")
+        # Turn 1: text-only (skip if cached)
+        if cached_criteria is not None:
+            criteria = cached_criteria
+        else:
+            payload1 = {
+                **base_opts,
+                "options": {"num_predict": _TURN1_MAX_TOKENS, "temperature": 0.0},
+                "messages": [{"role": "user", "content": turn1_prompt}],
+            }
+            resp1 = requests.post(f"{VLM_BASE_URL}/api/chat", json=payload1, timeout=300)
+            resp1.raise_for_status()
+            criteria = resp1.json().get("message", {}).get("content", "")
 
         # Turn 2: with images + conversation history
         turn2_msg: dict[str, Any] = {"role": "user", "content": turn2_prompt}

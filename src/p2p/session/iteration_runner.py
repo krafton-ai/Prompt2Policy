@@ -11,7 +11,11 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
-from p2p.agents.judge_agent import StreamingJudge, judge_all_checkpoints
+from p2p.agents.judge_agent import (
+    SharedCriteriaHolder,
+    StreamingJudge,
+    judge_all_checkpoints,
+)
 from p2p.analysis.guardrails import check_training_plateau, detect_reward_hacking
 from p2p.config import DEFAULT_JUDGMENT_SELECT
 from p2p.contracts import round_metric
@@ -66,6 +70,24 @@ def run_iteration(
     reward_fn_path = iteration_dir / "reward_fn.py"
     reward_fn_path.write_text(reward_code)
 
+    # Load reviewed VLM criteria from session cache if available.
+    # If not cached yet, StreamingJudge will generate lazily on first eval video
+    # (so the first frame can be included for grounding).
+    cached_criteria: str | None = None
+    session_dir = iteration_dir.parent
+    criteria_path = session_dir / "vlm_criteria.json"
+    if criteria_path.exists():
+        try:
+            cached_criteria = json.loads(criteria_path.read_text())["criteria"]
+            logger.info("Loaded cached VLM criteria from %s", criteria_path.name)
+        except (json.JSONDecodeError, KeyError):
+            logger.warning("Failed to load cached criteria, will regenerate on first eval")
+
+    # Single shared holder for all StreamingJudge instances in this iteration.
+    # On first iteration (no cache), the first instance to receive an eval video
+    # generates criteria; all others block and reuse the same value.
+    criteria_holder = SharedCriteriaHolder(initial=cached_criteria)
+
     # Pre-create run directories and start streaming judges
     base_config_dict = json.loads(config.to_json())
     all_run_ids = [f"{cfg['config_id']}_seed_{seed}" for cfg in configs for seed in seeds]
@@ -84,6 +106,7 @@ def run_iteration(
             model=model,
             judge_code=judge_code,
             judge_code_future=judge_code_future,
+            criteria_holder=criteria_holder,
         )
         sj.start()
         streaming_judges.append(sj)
@@ -211,6 +234,7 @@ def run_iteration(
             thinking_effort=thinking_effort,
             tag_history=tag_history,
             engine=config.engine,
+            cached_criteria=criteria_holder.value,
         )
         run_judgments[run_id] = judgment
         if session:
@@ -353,6 +377,7 @@ def judge_run(
     thinking_effort: str = "",
     tag_history: list[FailureTagEntry] | None = None,
     engine: str = "mujoco",
+    cached_criteria: str | None = None,
 ) -> tuple[str, dict]:
     """Judge a single config x seed run. Returns (run_id, judgment)."""
     rec = IterationRecord(run_dir)
@@ -379,6 +404,7 @@ def judge_run(
         judgment_select=judgment_select,
         tag_history=tag_history,
         engine=engine,
+        cached_criteria=cached_criteria,
     )
     rec.save_judgment(judgment)
     return run_id, judgment

@@ -105,13 +105,9 @@ def build_vlm_expectations_prompt(
         f"{rotation_note}"
         f"\n"
         f"## Instructions\n"
-        f"Before seeing the video, describe what specific visual evidence would "
-        f"indicate the task was successfully completed. Consider:\n"
-        f"- Body positions, orientations, and postures at key moments\n"
-        f"- Expected motion sequences (what happens first, then next)\n"
-        f"- Signs of failure or partial completion\n"
-        f"\n"
-        f"List 3-5 concrete visual criteria, ordered by importance."
+        f"Before seeing the video, list 3-5 visual criteria that would "
+        f"indicate success. Keep each criterion short and directly "
+        f"observable in the video. Order by importance."
         + (
             "\n\n## Initial Frame\n"
             "Below is the first frame of the episode, showing the "
@@ -123,9 +119,31 @@ def build_vlm_expectations_prompt(
     )
 
 
+def build_vlm_criteria_review_prompt(
+    criteria: str,
+    intent: str,
+    env_name: str,
+    engine: str = "mujoco",
+) -> str:
+    """Build prompt for VLM to review its own Turn 1 criteria."""
+    engine_label = engine_display_name(engine)
+    return (
+        f"You previously defined these visual success criteria for evaluating "
+        f'whether a {engine_label} {env_name} agent successfully performs: "{intent}"\n\n'
+        f"---\n{criteria}\n---\n\n"
+        f"Review these criteria for quality:\n"
+        f"1. Specificity: Can each criterion be clearly observed in a video?\n"
+        f"2. Completeness: Do they cover all key aspects of the intent?\n"
+        f"3. Redundancy: Are there overlapping criteria that should be consolidated?\n\n"
+        f"If the criteria are already sufficient, respond with exactly: APPROVED\n"
+        f"If improvements are needed, provide a REVISED list of 3-5 criteria "
+        f"(same format as above)."
+    )
+
+
 _VLM_CRITERIA_JSON_FORMAT = """\
 Reply with ONLY this JSON:
-{{"criteria": [{{"criterion": "<criterion text>", \
+{{"criteria": [{{"criterion": "<copy the EXACT criterion text from Turn 1 — do NOT rephrase>", \
 "assessment": "<what you observed for this criterion>", \
 "status": "<met | partially_met | not_met>"}}, ...], \
 "intent_score": <float 0.0 to 1.0 in 0.1 steps>, \
@@ -172,10 +190,12 @@ def build_vlm_scoring_prompt(
 
     if criteria_diagnosis:
         criteria_instruction = (
-            f"For EACH criterion you listed above, describe what you "
+            f"For EACH criterion you listed in Turn 1, copy its text "
+            f"VERBATIM into the criterion field, then describe what you "
             f"actually observed in the {media_desc} — note whether it "
             f"was met, partially met, or not met, and provide specific "
-            f"visual evidence. For each criterion, first write the assessment, "
+            f"visual evidence. Do NOT rephrase, rename, or summarize the "
+            f"criteria. For each criterion, first write the assessment, "
             f"then set the status field to exactly one of: "
             f"met, partially_met, or not_met.\n\n"
             f"After assessing all criteria, assign a SINGLE overall "

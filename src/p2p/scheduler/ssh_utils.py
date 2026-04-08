@@ -311,7 +311,7 @@ def _sync_code_rsync(node: dict, remote_dir: str, project_root: Path) -> bool:
         f"which uv >/dev/null 2>&1"
         f" || (curl -LsSf https://astral.sh/uv/install.sh | sh"
         f' && export PATH="$HOME/.local/bin:$PATH"); '
-        f"cd {remote_dir} && uv sync --quiet 2>&1 | tail -1",
+        f"cd {remote_dir} && uv sync --python 3.12 --quiet 2>&1 | tail -1",
     ]
     try:
         setup_result = subprocess.run(setup_cmd, capture_output=True, text=True, timeout=180)

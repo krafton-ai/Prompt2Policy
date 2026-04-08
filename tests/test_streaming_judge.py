@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
-from p2p.agents.judge_agent import StreamingJudge, judge_all_checkpoints
+from p2p.agents.judge_agent import SharedCriteriaHolder, StreamingJudge, judge_all_checkpoints
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -335,3 +335,83 @@ def test_judge_all_checkpoints_picks_last_over_best(mock_vlm, mock_avail, tmp_pa
     # step 200000 should be picked (last) despite 100000 having higher score (0.95 vs 0.3)
     assert result["best_checkpoint"] == "200000"
     assert result["intent_score"] == 0.3
+
+
+# ---------------------------------------------------------------------------
+# SharedCriteriaHolder — thread-safe criteria sharing
+# ---------------------------------------------------------------------------
+
+
+def test_shared_criteria_holder_returns_initial():
+    holder = SharedCriteriaHolder(initial="pre-loaded criteria")
+    assert holder.value == "pre-loaded criteria"
+
+
+def test_shared_criteria_holder_none_initially():
+    holder = SharedCriteriaHolder()
+    assert holder.value is None
+
+
+@patch("p2p.agents.judge_agent.generate_reviewed_vlm_criteria", return_value="generated criteria")
+def test_shared_criteria_holder_generates_once(mock_gen, tmp_path):
+    """Multiple get_or_generate calls produce exactly one VLM generation."""
+    import threading
+
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+    holder = SharedCriteriaHolder()
+
+    barrier = threading.Barrier(3)
+    results: list[str] = []
+    lock = threading.Lock()
+
+    def _call(video: Path) -> None:
+        barrier.wait()  # all threads start ~simultaneously
+        val = holder.get_or_generate(
+            intent="run forward",
+            env_name="HalfCheetah",
+            vlm_model="test-model",
+            video_path=video,
+            session_dir=session_dir,
+        )
+        with lock:
+            results.append(val)
+
+    video = tmp_path / "eval.mp4"
+    video.write_bytes(b"\x00" * 100)
+
+    threads = [threading.Thread(target=_call, args=(video,)) for _ in range(3)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=10)
+
+    # Generation called exactly once despite 3 concurrent callers
+    assert mock_gen.call_count == 1
+    # All callers got the same value
+    assert all(r == "generated criteria" for r in results)
+    assert len(results) == 3
+    # Criteria persisted to disk
+    assert (session_dir / "vlm_criteria.json").exists()
+
+
+@patch("p2p.agents.judge_agent.generate_reviewed_vlm_criteria", return_value="generated criteria")
+def test_shared_criteria_holder_skips_generation_when_preloaded(mock_gen, tmp_path):
+    """When initialized with cached criteria, generation is never called."""
+    session_dir = tmp_path / "session"
+    session_dir.mkdir()
+    holder = SharedCriteriaHolder(initial="cached criteria")
+
+    video = tmp_path / "eval.mp4"
+    video.write_bytes(b"\x00" * 100)
+
+    val = holder.get_or_generate(
+        intent="run forward",
+        env_name="HalfCheetah",
+        vlm_model="test-model",
+        video_path=video,
+        session_dir=session_dir,
+    )
+
+    assert val == "cached criteria"
+    assert mock_gen.call_count == 0
