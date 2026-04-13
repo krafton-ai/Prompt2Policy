@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 _TRAJECTORY_BASE_SCHEMA = """\
 Each trajectory entry is a dict with these fields (all optional except step):
   step: int              — timestep index (0, 1, 2, ...)
-  timestamp: float       — simulation time in seconds (dt=0.02 typically)
+  timestamp: float       — simulation time in seconds (dt={dt}s per step)
   obs: list[float]       — observation vector (dim={obs_dim})
   action: list[float]    — action vector (dim={action_dim}), torque commands
   reward: float          — scalar reward from the reward function
@@ -25,10 +25,15 @@ Each trajectory entry is a dict with these fields (all optional except step):
 """
 
 _TRAJECTORY_MUJOCO_SCHEMA = """\
-  qpos: list[float]      — generalized positions (joint angles + free body coords)
-  qvel: list[float]      — generalized velocities (joint velocities + free body velocities)
+  qpos: list[float]      — generalized positions (per-joint). For slide joints,
+      values are displacements from the body's XML-defined position, NOT world-frame
+      positions. For free joints, values ARE in world frame.
+      See the Body Layout section below for per-joint details and offsets.
+  qvel: list[float]      — generalized velocities (per-joint)
   control_cost: float    — control penalty (sum of squared actions)
-  xpos: list[list[float]]    — Cartesian body positions, shape (nbody, 3) [x, y, z] per body
+  xpos: list[list[float]]    — Cartesian body positions in world frame,
+      shape (nbody, 3) [x, y, z] per body. Index 0 is the world body;
+      real bodies start at index 1.
   xquat: list[list[float]]   — body orientation quaternions, shape (nbody, 4) [w, x, y, z] per body
   cvel: list[list[float]]    — body velocities, shape (nbody, 6) [ang(3), lin(3)] per body
   cfrc_ext: list[list[float]] — external contact forces, (nbody, 6) [torque(3), force(3)]
@@ -116,9 +121,11 @@ def build_judge_system_prompt(intent: str, env: EnvSpec, *, max_episode_steps: i
     )
 
     # Trajectory schema
+    dt = env.dt if env.dt > 0 else 0.02
     entry_schema = _TRAJECTORY_BASE_SCHEMA.format(
         obs_dim=env.obs_dim,
         action_dim=env.action_dim,
+        dt=dt,
     )
     if env.engine == "mujoco" and has_physics:
         entry_schema += _TRAJECTORY_MUJOCO_SCHEMA

@@ -267,7 +267,7 @@ cd frontend && npm run lint             # frontend lint
 ```bibtex
 @misc{prompt2policy2026,
   title   = {Prompt-to-Policy: Agentic Engineering for Reinforcement Learning},
-  author  = {{KRAFTON AI} and {Ludo Robotics} and Wooseong Chung and Taegwan Ha and Yunhyeok Kwak and Taehwan Kwon and Jeong-Gwan Lee and Kangwook Lee and Suyoung Lee},
+  author  = {Wooseong Chung and Taegwan Ha and Yunhyeok Kwak and Taehwan Kwon and Jeong-Gwan Lee and Kangwook Lee and Suyoung Lee},
   year    = {2026},
   url     = {https://github.com/krafton-ai/Prompt2Policy}
 }

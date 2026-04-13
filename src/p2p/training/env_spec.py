@@ -341,33 +341,70 @@ def extract_mujoco_body_info(env_id: str) -> str:
         # Ensure Cartesian positions (xpos etc.) are up to date
         mujoco.mj_forward(model, data)
 
-        # Collect named bodies with resting positions
+        # Collect bodies with resting positions (derive label for unnamed bodies)
         bodies: list[tuple[int, str, float, float, float]] = []
         for i in range(model.nbody):
             name = model.body(i).name
-            if not name or name == "world":
+            if name == "world":
                 continue
+            if not name:
+                # Derive label from joint attached to this body
+                for j in range(model.njnt):
+                    if model.jnt_bodyid[j] == i:
+                        jname = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, j)
+                        name = f"{jname}_body"
+                        break
+                else:
+                    name = f"body{i}"
             x, y, z = (float(v) for v in data.xpos[i])
             bodies.append((i, name, x, y, z))
 
         # --- qpos / qvel (generalized coordinates) ---
+        # Detect root joint type to add frame clarification
+        root_jtype = model.jnt_type[0] if model.njnt > 0 else -1
+        has_slide_root = root_jtype == 2  # slide joint
+        has_free_root = root_jtype == 0  # free joint
+
         lines: list[str] = [
             f"mj_data.qpos — generalized positions, shape ({model.nq},).",
         ]
+        if has_free_root:
+            lines.append("  (Free joint: qpos position values are in world frame.)")
+        elif has_slide_root:
+            body_id = model.jnt_bodyid[0]
+            bpos = model.body_pos[body_id]
+            lines.append(
+                f"  (Slide joints: qpos values are DISPLACEMENTS from the body's"
+                f" XML origin [{bpos[0]:.2f}, {bpos[1]:.2f}, {bpos[2]:.2f}],"
+                f" NOT world-frame positions."
+                f" Use xpos for world-frame position/height checks.)"
+            )
+
         for i in range(model.njnt):
             name = model.joint(i).name
             jtype = model.jnt_type[i]
             adr = model.jnt_qposadr[i]
             if jtype == 0:  # free joint: 3 pos + 4 quat
-                lines.append(f"  mj_data.qpos[{adr}:{adr + 3}] → {name} position [x, y, z]")
+                lines.append(
+                    f"  mj_data.qpos[{adr}:{adr + 3}] → {name} position [x, y, z] (world frame)"
+                )
                 lines.append(
                     f"  mj_data.qpos[{adr + 3}:{adr + 7}] → {name} quaternion [w, x, y, z]"
                 )
             elif jtype == 1:  # ball joint: 4 quat
                 lines.append(f"  mj_data.qpos[{adr}:{adr + 4}] → {name} quaternion [w, x, y, z]")
-            else:  # slide or hinge: 1 value
-                label = "position" if jtype == 2 else "angle"
-                lines.append(f"  mj_data.qpos[{adr}]  → {name} ({label})")
+            elif jtype == 2:  # slide joint
+                axis = model.jnt_axis[i]
+                axis_label = "xyz"[int(max(range(3), key=lambda k: abs(float(axis[k]))))]
+                body_id = model.jnt_bodyid[i]
+                offset = model.body_pos[body_id]["xyz".index(axis_label)]
+                lines.append(
+                    f"  mj_data.qpos[{adr}]  → {name}"
+                    f" (displacement along {axis_label} in meters,"
+                    f" world {axis_label} = qpos[{adr}] + {offset:.2f})"
+                )
+            else:  # hinge joint
+                lines.append(f"  mj_data.qpos[{adr}]  → {name} (angle in radians)")
 
         lines.append("")
         lines.append(f"mj_data.qvel — generalized velocities, shape ({model.nv},).")
@@ -377,18 +414,27 @@ def extract_mujoco_body_info(env_id: str) -> str:
             adr = model.jnt_dofadr[i]
             if jtype == 0:  # free joint: 3 linear + 3 angular
                 lines.append(
-                    f"  mj_data.qvel[{adr}:{adr + 3}] → {name} linear velocity [vx, vy, vz]"
+                    f"  mj_data.qvel[{adr}:{adr + 3}]"
+                    f" → {name} linear velocity [vx, vy, vz] (m/s, world frame)"
                 )
                 lines.append(
-                    f"  mj_data.qvel[{adr + 3}:{adr + 6}] → {name} angular velocity [wx, wy, wz]"
+                    f"  mj_data.qvel[{adr + 3}:{adr + 6}]"
+                    f" → {name} angular velocity [wx, wy, wz] (rad/s, world frame)"
                 )
             elif jtype == 1:  # ball joint: 3 angular
                 lines.append(
-                    f"  mj_data.qvel[{adr}:{adr + 3}] → {name} angular velocity [wx, wy, wz]"
+                    f"  mj_data.qvel[{adr}:{adr + 3}]"
+                    f" → {name} angular velocity [wx, wy, wz] (rad/s)"
                 )
-            else:  # slide or hinge: 1 value
-                label = "linear velocity" if jtype == 2 else "angular velocity"
-                lines.append(f"  mj_data.qvel[{adr}]  → {name} ({label})")
+            elif jtype == 2:  # slide joint
+                axis = model.jnt_axis[i]
+                axis_label = "xyz"[int(max(range(3), key=lambda k: abs(float(axis[k]))))]
+                lines.append(
+                    f"  mj_data.qvel[{adr}]  → {name}"
+                    f" (linear velocity along {axis_label}, m/s, world frame)"
+                )
+            else:  # hinge joint
+                lines.append(f"  mj_data.qvel[{adr}]  → {name} (angular velocity, rad/s)")
 
         # --- Per-body Cartesian kinematics ---
         lines.append("")
@@ -440,7 +486,7 @@ def extract_mujoco_body_info(env_id: str) -> str:
         # Contact forces
         lines.append("")
         lines.append(
-            "mj_data.cfrc_ext — external contact forces per body,"
+            "mj_data.cfrc_ext — external contact forces per body in world frame,"
             " shape (nbody, 6) = [torque(3), force(3)]."
         )
         for idx, name, *_ in bodies:
